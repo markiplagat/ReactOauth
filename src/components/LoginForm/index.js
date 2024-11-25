@@ -1,6 +1,8 @@
 import {Component} from 'react'
 import Cookies from 'js-cookie'
 import {Redirect} from 'react-router-dom'
+import {GoogleLogin} from '@react-oauth/google'
+import {SignJWT} from 'jose'
 
 import {
   AppContainer,
@@ -15,6 +17,9 @@ import {
   Checkbox,
   ShowPassword,
 } from './styledComponents'
+
+const clientId =
+  '851587220149-dpur5ikchl8sigg1ct8js875omhgdu13.apps.googleusercontent.com'
 
 class LoginForm extends Component {
   state = {
@@ -45,6 +50,41 @@ class LoginForm extends Component {
 
   onSubmitFailure = errorMsg => {
     this.setState({showSubmitError: true, errorMsg})
+  }
+
+  onGoogleLoginSuccess = async response => {
+    try {
+      console.log('Google Login Success:', response)
+      // Token received from Google
+      const googleToken = response.credential
+
+      // extract  payload
+      const decodedToken = JSON.parse(atob(googleToken.split('.')[1]))
+      console.log('Decoded Google Token:', decodedToken)
+
+      // Need to Validate the Google token with the backend here by sending token to BE
+
+      const backendJwtToken = await new SignJWT({
+        username: decodedToken.email,
+        role: 'PRIME_USER',
+      })
+        .setProtectedHeader({alg: 'HS256'})
+        .setIssuedAt()
+        .setExpirationTime('30d')
+        .sign(new TextEncoder().encode(clientId))
+
+      console.log('Generated Backend JWT:', backendJwtToken)
+
+      this.onSubmitSuccess(backendJwtToken)
+    } catch (error) {
+      console.error('Error in Google Login:', error)
+      this.onSubmitFailure('Google Login Failed')
+    }
+  }
+
+  onGoogleLoginFailure = error => {
+    console.error('Google Login Failed:', error)
+    this.onSubmitFailure('Google Login Failed')
   }
 
   submitForm = async event => {
@@ -124,6 +164,11 @@ class LoginForm extends Component {
           <InputContainer>{this.renderUsernameField()}</InputContainer>
           <InputContainer>{this.renderPasswordField()}</InputContainer>
           <LoginButton type="submit">Login</LoginButton>
+
+          <GoogleLogin
+            onSuccess={this.onGoogleLoginSuccess}
+            onError={this.onGoogleLoginFailure}
+          />
           {showSubmitError && <SubmitError>*{errorMsg}</SubmitError>}
         </FormContainer>
       </AppContainer>

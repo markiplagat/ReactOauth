@@ -36,6 +36,7 @@ export const LoginButton = styled.button`
   height: 30px;
   color: #ffffff;
   margin-top: 20px;
+  margin-bottom: 20px;
 `
 
 export const SubmitError = styled.p`
