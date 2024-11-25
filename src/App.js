@@ -1,5 +1,7 @@
 import {Component} from 'react'
 import {Route, Switch, Redirect} from 'react-router-dom'
+import {GoogleOAuthProvider} from '@react-oauth/google'
+
 import ProtectedRoute from './components/ProtectedRoute'
 import LoginForm from './components/LoginForm'
 import Home from './components/Home'
@@ -12,6 +14,9 @@ import NotFound from './components/NotFound'
 import ThemeAndVideoContext from './context/ThemeAndVideoContext'
 
 import './App.css'
+
+const clientId =
+  '851587220149-dpur5ikchl8sigg1ct8js875omhgdu13.apps.googleusercontent.com'
 
 // Replace your code here
 
@@ -55,31 +60,37 @@ class App extends Component {
     const {savedVideos, isDarkTheme, activeTab} = this.state
     // console.log(savedVideos)
     return (
-      <ThemeAndVideoContext.Provider
-        value={{
-          savedVideos,
-          isDarkTheme,
-          activeTab,
-          toggleTheme: this.toggleTheme,
-          addVideo: this.addVideo,
-          changeTab: this.changeTab,
-        }}
-      >
-        <Switch>
-          <Route exact path="/login" component={LoginForm} />
-          <ProtectedRoute exact path="/" component={Home} />
-          <ProtectedRoute
-            exact
-            path="/videos/:id"
-            component={VideoDetailView}
-          />
-          <ProtectedRoute exact path="/trending" component={TrendingVideos} />
-          <ProtectedRoute exact path="/gaming" component={GamingVideos} />
-          <ProtectedRoute exact path="/saved-videos" component={SavedVideos} />
-          <Route path="/not-found" component={NotFound} />
-          <Redirect to="/not-found" />
-        </Switch>
-      </ThemeAndVideoContext.Provider>
+      <GoogleOAuthProvider clientId={clientId}>
+        <ThemeAndVideoContext.Provider
+          value={{
+            savedVideos,
+            isDarkTheme,
+            activeTab,
+            toggleTheme: this.toggleTheme,
+            addVideo: this.addVideo,
+            changeTab: this.changeTab,
+          }}
+        >
+          <Switch>
+            <Route exact path="/login" component={LoginForm} />
+            <ProtectedRoute exact path="/" component={Home} />
+            <ProtectedRoute
+              exact
+              path="/videos/:id"
+              component={VideoDetailView}
+            />
+            <ProtectedRoute exact path="/trending" component={TrendingVideos} />
+            <ProtectedRoute exact path="/gaming" component={GamingVideos} />
+            <ProtectedRoute
+              exact
+              path="/saved-videos"
+              component={SavedVideos}
+            />
+            <Route path="/not-found" component={NotFound} />
+            <Redirect to="/not-found" />
+          </Switch>
+        </ThemeAndVideoContext.Provider>
+      </GoogleOAuthProvider>
     )
   }
 }
